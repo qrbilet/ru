@@ -374,26 +374,30 @@
 
         // Функция для воспроизведения видео
         function playVideo() {
-            // Массив с именами файлов видео
-            const videos = ['1.mp4', '2.mp4', '3.mp4', '4.mp4', '5.mp4'];
-            
-            // Случайный индекс для выбора видео
-            const randomIndex = Math.floor(Math.random() * videos.length);
-            
-            // Выбор случайного видео
-            const selectedVideo = videos[randomIndex];
-            
-            // Создание элемента видео
-            const videoElement = document.createElement('video');
-            videoElement.src = selectedVideo;
-            videoElement.controls = true; // добавляем элементы управления
-            videoElement.autoplay = true; // автозапуск видео
-            
-            // Очистка предыдущего содержимого (если нужно)
-            const videoContainer = document.getElementById('videoContainer');
-            videoContainer.innerHTML = ''; // очищаем контейнер
-            videoContainer.appendChild(videoElement); // добавляем новое видео
-        }
+	    const videoContainer = document.getElementById("videoContainer");
+	    const video = document.getElementById("payment-notification-video");
+	
+	    // Массив с именами файлов видео
+	    const videos = ["1.mp4", "2.mp4", "3.mp4", "4.mp4", "5.mp4"];
+	
+	    // Выбираем случайное видео из массива
+	    const randomIndex = Math.floor(Math.random() * videos.length);
+	    video.src = videos[randomIndex]; // Устанавливаем источник видео
+	
+	    // Добавляем класс для полноэкранного режима
+	    videoContainer.classList.add('fullscreen');
+	
+	    // Показать видео и начать воспроизведение
+	    videoContainer.style.display = "block";
+	    video.play();
+	
+	    // Выход из полноэкранного режима при клике на экран
+	    videoContainer.addEventListener('click', function() {
+	        video.pause(); // Приостанавливаем видео
+	        videoContainer.classList.remove('fullscreen'); // Удаляем класс полноэкранного режима
+	        videoContainer.style.display = 'none'; // Скрываем контейнер
+	    });
+	}
     </script>
 </body>
 
