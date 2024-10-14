@@ -1,0 +1,405 @@
+</script>
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Уведомление об оплате</title>
+    <base href=".">
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+
+    <style>
+        html, body {
+            min-height: 100%;
+            margin: 0;
+            box-sizing: border-box;
+            background-color: #f5f1e8;
+            font-family: 'Circe', sans-serif;
+        }
+
+        @font-face {
+            font-family: 'Circe';
+            src: url(circe-bold-webfont.27529df664ce2f0e.woff2) format("woff2"),
+                 url(circe-bold-webfont.a6d441f673662776.woff) format("woff");
+            font-weight: 700;
+        }
+
+        @font-face {
+            font-family: 'Circe';
+            src: url(circe-regular-webfont.70e2ea4fb032224b.woff2) format("woff2"),
+                 url(circe-regular-webfont.01fbe67cb561e424.woff) format("woff");
+            font-weight: 400;
+        }
+
+        .logo {
+            text-align: center;
+            margin: 16px 0;
+        }
+
+        .content {
+            padding: 0 16px;
+        }
+
+        .ticket {
+            margin-top: 39px;
+        }
+
+        .ticket__qrcode {
+            margin: 31px 0;
+            text-align: center;
+        }
+
+        .ticket__button {
+            margin-bottom: 32px;
+        }
+
+        .trip-details {
+            margin-bottom: 35px;
+        }
+
+        .text-block {
+            text-align: center;
+            margin-bottom: 14px;
+        }
+
+        .trip-details p {
+            text-align: left;
+        }
+
+        /* Скрытие input и стилизация */
+        .input-hidden {
+            opacity: 0;
+            position: absolute;
+            pointer-events: none;
+        }
+
+        /* Стили для отображения числа без рамки */
+        .editable-number {
+            display: inline-block;
+            border-bottom: 1px dashed transparent;
+        }
+
+        .editable-number:hover {
+            border-bottom-color: #000;
+            cursor: pointer;
+        }
+
+        /* Медиа-запросы для адаптивности QR-кода */
+        @media (max-width: 767px) {
+            .ticket__qrcode img,
+            .ticket__qrcode canvas {
+                height: 350px !important;
+                width: 350px !important;
+            }
+        }
+
+        /* Стили для toast-уведомления */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            margin-left: -125px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 2px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1;
+            left: 50%;
+            bottom: 30px;
+            font-size: 17px;
+            transition: opacity 0.5s, bottom 0.5s;
+            opacity: 0;
+        }
+
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
+
+        body {
+            position: relative;
+        }
+
+        .video-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            display: none;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        .video-container video {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 90%;
+            max-height: 90%;
+        }
+    </style>
+
+    <link rel="stylesheet" href="./style.css" media="all">
+</head>
+<body>
+    <noscript>
+        <div><img style="position:absolute; left:-9999px;" alt="" src="./95305900"></div>
+    </noscript>
+    
+    <app-root ng-version="14.3.0">
+        <router-outlet></router-outlet>
+        <app-wrapper>
+            <div class="wrapper">
+                <app-header>
+                    <header>
+                        <h1 onclick="playVideo()">Уведомление об оплате</h1>
+                    </header>
+                </app-header>
+                
+                <div class="logo">
+                    <img src="./logo.svg" alt="Система Быстрых Платежей">
+                </div>
+                
+                <div class="content">
+                    <router-outlet></router-outlet>
+                    <app-result>
+                        <div class="text-block text-block_text-align_center">
+                            <p>Ваш проезд успешно оплачен!<br>Чтобы сохранить реквизиты билета, нажмите кнопку «Скачать билет»</p>
+                        </div>
+                        <div class="video-container" id="videoContainer" style="display: none;">
+                            <video id="payment-notification-video" controls>
+                                <source src="path_to_your_video.mp4" type="video/mp4">
+                                Ваш браузер не поддерживает видео.
+                            </video>
+                        </div>
+                        <app-ticket>
+                            <div class="ticket">
+                                <app-trip-details>
+                                    <div class="trip-details text-block" id="trip-details">
+                                        <p>Серия билета: <strong id="ticket-series">QR2001</strong></p>
+                                        <p>Номер билета: <strong id="ticket-number">20240715071131000</strong></p>
+                                        <p>Дата/время поездки: <strong id="ticket-date-time"></strong></p>
+                                        <p>
+                                            <span id="bus-label" onclick="toggleTransport()">Автобус:</span>
+                                            <strong class="editable-number" id="ticket-bus" onclick="editBus()">0</strong>
+                                            <input type="number" id="input-ticket-bus" class="input-hidden" onblur="saveBus()">
+                                        </p>
+                                        <p>
+                                            <span>Т/С:</span>
+                                            <strong class="editable-number" id="ticket-tc" onclick="editTC()">0</strong>
+                                            <input type="number" id="input-ticket-tc" class="input-hidden" onblur="saveTC()">
+                                        </p>
+                                        <p>
+                                            Стоимость:
+                                            <strong class="editable-number" id="ticket-price" onclick="editPrice()">40.00 руб.</strong>
+                                            <input type="text" id="input-ticket-price" class="input-hidden">
+                                        </p>
+                                    </div>
+                                </app-trip-details>
+                                
+                                <div class="text-block text-block_text-align_center text-block_margin-bottom_14">
+                                    <p onclick="resetTimer()">С момента оплаты прошло:<br><strong id="time-since-payment">00:00:00</strong></p>
+                                </div>
+                                
+                                <div class="text-block text-block_text-align_center">
+                                    <p>QR-код билета для предъявления контролеру</p>
+                                </div>
+                                
+                                <div class="ticket__qrcode">
+                                    <img src="./qrcode.png" alt="QR-код билета" style="height: 2000px; width: 2000px;" aria-label="url" title="Билет">
+                                </div>
+                                
+                                <div class="ticket__button">
+                                    <app-button>
+                                        <div class="for-button">
+                                            <button class="for-button__button" onclick="showToast('Ошибка')">Скачать билет</button>
+                                        </div>
+                                        <div class="footer-text">v1.2 by doycs</div>
+                                    </app-button>
+                                </div>
+                            </div>
+                        </app-ticket>
+                    </app-result>
+                </div>
+            </div>
+        </app-wrapper>
+    </app-root>
+
+    <div id="toast">Ошибка</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Функция для обновления времени каждую секунду
+            function updateTime() {
+                var now = new Date();
+                var options = {
+                    year: 'numeric',
+                    month: 'numeric',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    timeZone: 'Europe/Moscow'
+                };
+                var formattedDate = now.toLocaleDateString('ru-RU', options).replace(',', '');
+                document.getElementById('ticket-date-time').textContent = formattedDate;
+            }
+
+            // Функция для генерации случайного числа заданной длины
+            function generateRandomNumber(min, max) {
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+
+            // Функция для обновления серии билета
+            function updateTicketSeries() {
+                var randomTwoDigit = generateRandomNumber(1, 79).toString().padStart(2, '0');
+                var randomThreeDigit = generateRandomNumber(11, 800).toString().padStart(3, '0');
+                var ticketSeries = 'QR2001' + randomTwoDigit + '000' + randomThreeDigit;
+                document.getElementById('ticket-series').textContent = ticketSeries;
+            }
+
+            // Функция для обновления номера билета
+            function updateTicketNumber() {
+                var now = new Date();
+                var year = now.getFullYear();
+                var month = ('0' + (now.getMonth() + 1)).slice(-2);
+                var day = ('0' + now.getDate()).slice(-2);
+                var randomDigits = generateRandomNumber(100000, 999999);
+                var ticketNumber = year + month + day + randomDigits + '000';
+                document.getElementById('ticket-number').textContent = ticketNumber;
+            }
+
+            // Инициализация
+            updateTime();
+            updateTicketSeries();
+            updateTicketNumber();
+            setInterval(updateTime, 1000 * 60); // Каждую минуту
+            setInterval(updateTicketSeries, 24 * 60 * 60 * 1000); // Каждые 24 часа
+            setInterval(updateTicketNumber, 24 * 60 * 60 * 1000); // Каждые 24 часа
+        });
+
+        // Функции для редактирования текстовых данных
+        function editBus() {
+            toggleEditVisibility('ticket-bus', 'input-ticket-bus');
+        }
+
+        function editTC() {
+            toggleEditVisibility('ticket-tc', 'input-ticket-tc');
+        }
+
+        function editPrice() {
+            toggleEditVisibility('ticket-price', 'input-ticket-price', ' руб.');
+        }
+
+        function toggleEditVisibility(textId, inputId, suffix = '') {
+            var textElement = document.getElementById(textId);
+            var inputElement = document.getElementById(inputId);
+
+            inputElement.value = textElement.textContent.replace(suffix, '');
+            textElement.style.display = 'none';
+            inputElement.style.display = 'inline-block';
+            inputElement.focus();
+        }
+
+        // Обработчики для сохранения изменений при потере фокуса
+        document.getElementById('input-ticket-bus').addEventListener('blur', function() {
+            saveValue('ticket-bus', 'input-ticket-bus');
+        });
+
+        document.getElementById('input-ticket-tc').addEventListener('blur', function() {
+            saveValue('ticket-tc', 'input-ticket-tc');
+        });
+
+        document.getElementById('input-ticket-price').addEventListener('blur', function() {
+            saveValue('ticket-price', 'input-ticket-price', ' руб.');
+        });
+
+        function saveValue(textId, inputId, suffix = '') {
+            var textElement = document.getElementById(textId);
+            var inputElement = document.getElementById(inputId);
+            var newValue = inputElement.value.trim();
+
+            if (newValue !== '' && !isNaN(newValue)) {
+                textElement.textContent = newValue + suffix;
+            }
+
+            inputElement.style.display = 'none';
+            textElement.style.display = 'inline-block';
+        }
+
+        // Функция для показа toast-уведомления
+        function showToast(message) {
+            var toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+
+            setTimeout(function() {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Функция для переключения транспорта
+        function toggleTransport() {
+            const busLabel = document.getElementById("bus-label");
+            busLabel.textContent = busLabel.textContent === "Автобус:" ? "Троллейбус:" : "Автобус:";
+        }
+
+        // Таймер
+        var seconds = 0; 
+
+        function resetTimer() {
+            seconds = 0; 
+            updateTimer(); 
+        }
+
+        function updateTimer() {
+            var hours = Math.floor(seconds / 3600);
+            var minutes = Math.floor((seconds % 3600) / 60);
+            var remainingSeconds = seconds % 60;
+
+            var timeString = 
+                (hours < 10 ? "0" + hours : hours) + ":" +
+                (minutes < 10 ? "0" + minutes : minutes) + ":" +
+                (remainingSeconds < 10 ? "0" + remainingSeconds : remainingSeconds);
+
+            document.getElementById("time-since-payment").textContent = timeString;
+            seconds++;
+            setTimeout(updateTimer, 1000); // Каждую секунду
+        }
+
+        // Функция для воспроизведения видео
+        function playVideo() {
+            const videoContainer = document.getElementById("videoContainer");
+            const video = document.getElementById("payment-notification-video");
+
+                // Добавляем класс для полноэкранного режима
+    			videoContainer.classList.add('fullscreen');
+
+            // Показать видео и начать воспроизведение
+            videoContainer.style.display = "block";
+            video.play();
+        }
+    </script>
+</body>
+
+<!-- 
+
+Так, ЕБАТЬ 
+Во-первых, зачем ты сюда зашел?
+Во-вторых, скажи спасибо создателю, что экономишь свои копейки ебаные.
+В-третьих не пизди сайт пжпжпж.
+
+devblog v1.9 ZOV🇺🇦:
+	почищен код от хуйни.
+	старт/обнуление таймера по нажатию.
+    улучшен qr-код.
+
+info:
+	dev @zxchoxxy
+	подписка в месяц 350руб.
+
+-->
