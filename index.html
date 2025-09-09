@@ -10,7 +10,8 @@
     <link rel="shortcut icon" type="image/x-icon" href="./favicon.ico">
 
     <style>
-        html, body {
+        html,
+        body {
             min-height: 100%;
             margin: 0;
             box-sizing: border-box;
@@ -21,14 +22,14 @@
         @font-face {
             font-family: 'Circe';
             src: url(circe-bold-webfont.27529df664ce2f0e.woff2) format("woff2"),
-                 url(circe-bold-webfont.a6d441f673662776.woff) format("woff");
+                url(circe-bold-webfont.a6d441f673662776.woff) format("woff");
             font-weight: 700;
         }
 
         @font-face {
             font-family: 'Circe';
             src: url(circe-regular-webfont.70e2ea4fb032224b.woff2) format("woff2"),
-                 url(circe-regular-webfont.01fbe67cb561e424.woff) format("woff");
+                url(circe-regular-webfont.01fbe67cb561e424.woff) format("woff");
             font-weight: 400;
         }
 
@@ -233,7 +234,8 @@
             color: #1d1346;
         }
 
-        .label, .editable-number.transport-number {
+        .label,
+        .editable-number.transport-number {
             font-family: 'Circe', sans-serif;
             font-weight: 350;
             color: rgb(181, 181, 181);
@@ -354,7 +356,7 @@
                                 </app-trip-details>
 
                                 <div class="text-block text-block_text-align_center text-block_margin-bottom_14">
-                                    <p onclick="resetTimer()">С момента оплаты прошло:<br><strong id="time-since-payment">00:00:00</strong></p>
+                                    <p onclick="resetTimer()">С момента оплаты прошло:<br><strong id="time-since-payment">00:00</strong></p>
                                 </div>
 
                                 <div class="ticket__qrcode">
@@ -392,7 +394,14 @@
         document.addEventListener('DOMContentLoaded', function() {
             function updateTime() {
                 const now = new Date();
-                const options = { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', timeZone: 'Europe/Moscow' };
+                const options = {
+                    year: 'numeric',
+                    month: 'numeric',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    timeZone: 'Europe/Moscow'
+                };
                 const formattedDate = now.toLocaleDateString('ru-RU', options).replace(',', '');
                 document.getElementById('ticket-date-time').textContent = formattedDate;
             }
@@ -410,7 +419,7 @@
                 const day = ('0' + now.getDate()).slice(-2);
                 const randomDigits = generateRandomNumber(100000, 999999);
                 const ticketNumber = year + month + day + randomDigits + '000';
-                
+
                 document.getElementById('ticket-series').textContent = 'QR2001' + randomTwoDigit + '000' + randomThreeDigit;
                 document.getElementById('ticket-number').textContent = ticketNumber;
             }
@@ -460,7 +469,7 @@
         // Обработчики для сохранения изменений при потере фокуса
         document.getElementById('input-ticket-bus').addEventListener('blur', () => saveValue('ticket-bus', 'input-ticket-bus'));
         document.getElementById('input-ticket-tc').addEventListener('blur', () => saveValue('ticket-tc', 'input-ticket-tc'));
-        document.getElementById('input-ticket-price').addEventListener('blur', () => saveValue('ticket-price', 'input-ticket-price',));
+        document.getElementById('input-ticket-price').addEventListener('blur', () => saveValue('ticket-price', 'input-ticket-price', ));
 
         function showToast(message) {
             const toast = document.getElementById('toast');
@@ -477,21 +486,19 @@
             busLabel.textContent = busLabel.textContent === "Автобус: №" ? "Троллейбус: №" : "Автобус: №";
         }
 
-        let seconds = Math.floor(Math.random() * 6) + 10;
+        let seconds = Math.floor(Math.random() * 3600); // Диапазон до 60 минут
 
         function resetTimer() {
-            seconds = Math.floor(Math.random() * 6) + 10;
+            seconds = Math.floor(Math.random() * 3600);
             updateTimer();
         }
 
         function updateTimer() {
-            const hours = Math.floor(seconds / 3600);
-            const minutes = Math.floor((seconds % 3600) / 60);
+            const minutes = Math.floor(seconds / 60);
             const remainingSeconds = seconds % 60;
 
-            const timeString = 
-                (hours < 10 ? "0" : "") + hours + ":" + 
-                (minutes < 10 ? "0" : "") + minutes + ":" + 
+            const timeString =
+                (minutes < 10 ? "0" : "") + minutes + ":" +
                 (remainingSeconds < 10 ? "0" : "") + remainingSeconds;
 
             document.getElementById("time-since-payment").textContent = timeString;
@@ -524,8 +531,6 @@
             // Если нет, перенаправляем на страницу логина
             window.location.href = "login.html";
         }
-
-
     </script>
 
     <style>
@@ -538,6 +543,8 @@
         }
     </style>
 </body>
+</html>
+
 
 
 
@@ -558,3 +565,4 @@ info:
     подписка в месяц 350руб.
 
 -->
+
