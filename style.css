@@ -63,22 +63,12 @@ header::after {
 }
 
 header::before {
-    top: -109px;
-    right: -105px;
-    width: 285px;
-    height: 225px;
-    border-radius: 50%;
-    background: var(--blue-dark);
-    transform: rotate(22deg);
+    inset: 0;
+    background: url("./header_lol.png") center / cover no-repeat;
 }
 
 header::after {
-    right: -4%;
-    bottom: -1px;
-    left: -4%;
-    height: 35px;
-    background: var(--page-background);
-    clip-path: polygon(0 78%, 19% 93%, 43% 77%, 67% 94%, 100% 73%, 100% 100%, 0 100%);
+    display: none;
 }
 
 header h1 {
@@ -295,12 +285,6 @@ header h1::after {
     color: #fff;
     font-size: 17px;
     text-align: center;
-}
-
-@media (min-width: 720px) {
-    header::after {
-        display: none;
-    }
 }
 
 @media (max-width: 767px) {
