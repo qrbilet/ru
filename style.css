@@ -51,7 +51,6 @@ header {
     justify-content: center;
     overflow: hidden;
     padding: 20px;
-    background: var(--blue);
 }
 
 header::before,
